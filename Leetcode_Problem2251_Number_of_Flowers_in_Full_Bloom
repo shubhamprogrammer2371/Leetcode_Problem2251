@@ -1,0 +1,139 @@
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+static int cmp_int_asc(const int * const pThis, const int * const pBase)
+{
+	if (*pThis < *pBase){
+		return -1;
+	}else if (*pThis > *pBase){
+		return 1;
+	}else {
+		return 0;
+	}
+}
+
+static int firstInAsc(const int * const nums,const int numsLen, const int target)
+{
+	int first = 0, nextOfLast = numsLen;
+	while (first < nextOfLast)
+    {
+		const int mid = first + (nextOfLast - first) / 2;
+		if (nums[mid] < target)
+			first = mid + 1;
+		else
+			nextOfLast = mid;
+	}
+	assert(first == nextOfLast);
+	return nextOfLast;
+}
+
+int * fullBloomFlowers( const int * const * const flowers,const int flowersLen,const int * const flowerLens,const int * const persons,const int personsLen,int * const pRetsLen)
+{
+	(void)flowerLens;
+	int starts[flowersLen], ends[flowersLen];
+	for (int i = 0; i < flowersLen; i++)
+    {
+		starts[i] = flowers[i][0];
+		ends[i] = flowers[i][1];
+	}
+	qsort(starts, flowersLen, sizeof (int), &cmp_int_asc);
+	qsort(ends, flowersLen, sizeof (int), &cmp_int_asc);
+
+	*pRetsLen = personsLen;
+	int * const rets = (int *)malloc(sizeof (int) * *pRetsLen);
+
+	for (int i = 0; i < personsLen; i += 1)
+		rets[i] = firstInAsc(starts, flowersLen, persons[i] + 1) - firstInAsc(ends, flowersLen, persons[i]);
+	return rets;
+}
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+// Runtime 359 ms Beats 100% Memory 44.2 MB Beats 100%
+int lower_bound(int* arr, int arrSize, int val) {
+    // Binary Search
+
+    // Time complexity: O(nlogn)
+    // Space complexity: O(1)
+
+    // Initialize starting index 'left' and ending index 'right'
+    int middle = 0, left = 0, right = arrSize;
+    while (left < right) {
+        middle = left + (right - left) / 2;
+        
+        // If target 'val' is less than or equal to arr[middle], then find in left subarray
+        if (val <= arr[middle]) {
+            right = middle;
+        }
+        // If target 'val' is greater than arr[middle], then find in right subarray
+        else left = middle + 1;
+    }
+    // If target 'val' is greater than arr[left - 1]
+    if (left < arrSize && arr[left] < val) {
+        left++;
+    }
+    // Return the lower_bound index
+    return left;
+}
+int upper_bound(int* arr, int arrSize, int val) {
+    // Binary Search
+
+    // Time complexity: O(nlogn)
+    // Space complexity: O(1)
+
+    // Find upper bound from a sorted array
+    int middle = 0, left = 0, right = arrSize;
+    while (left < right) {
+        middle = left + (right - left) / 2;
+        if (val >= arr[middle]) {
+            left = middle + 1;
+        }
+        else right = middle;
+    }
+    if (left < arrSize && arr[left] <= val) {
+        left++;
+    }
+    return left;
+}
+int ascend(const void* pa, const void* pb) {
+    const int a = *(const int*)pa;
+    const int b = *(const int*)pb;
+    if (a == b) {
+        return 0;
+    }
+    return (a < b) ? -1 : 1;
+}
+int* fullBloomFlowers(int** flowers, int flowersSize, int* flowersColSize, 
+                      int* people, int peopleSize, int* returnSize) {
+    // Sorting + Binary search
+
+    // Time complexity: O(nlogn + peopleSize*logn)
+    // Space complexity: O(n + peopleSize)
+
+    const int n = flowersSize;
+    int* starts = (int*)calloc(n, sizeof(int));
+    int* ends = (int*)calloc(n, sizeof(int));
+    for (int i = 0; i < flowersSize; i++) {
+        starts[i] = flowers[i][0];
+        ends[i] = flowers[i][1];
+    }
+
+    qsort(starts, n, sizeof(int), ascend);
+    qsort(ends, n, sizeof(int), ascend);
+
+    int* result = (int*)calloc(peopleSize, sizeof(int));
+    *returnSize = peopleSize;
+    for (int i = 0; i < peopleSize; i++) {
+        const int started = upper_bound(starts, n, people[i]);
+        const int ended = lower_bound(ends, n, people[i]);
+        result[i] = started - ended;
+    }
+
+    free(starts);
+    free(ends);
+    return result;
+}
